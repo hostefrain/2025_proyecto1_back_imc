@@ -7,5 +7,6 @@ async function bootstrap() {
   app.enableCors(); // Habilita CORS para el frontend
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }));
   await app.listen(3000);
+  return app;
 }
-bootstrap();
+module.exports = bootstrap();
