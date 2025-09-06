@@ -10,7 +10,8 @@ async function bootstrap() {
     credentials: true,
   }); // Habilita CORS para el frontend
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }));
-  await app.init();
-  return app;
+
+  const port = process.env.PORT || 3000; //Aca usamos el puerto de render o por def. el 3000
+  await app.listen(port,'0.0.0.0');
 }
 module.exports = bootstrap()
