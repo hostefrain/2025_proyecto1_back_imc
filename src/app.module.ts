@@ -29,4 +29,5 @@ import { ImcEntity } from './module/imc/imc.entity';
   controllers: [AppController],
   providers: [AppService],
 })
+
 export class AppModule {}
