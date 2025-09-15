@@ -1,27 +1,52 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { ImcEntity } from './module/imc/imc.entity'; // 👈 tus entidades
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
+import { ImcModule } from './module/imc/imc.module';
+import { truncate } from 'fs';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
-      isGlobal: true, // disponible en toda la app
+      isGlobal: true,
     }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        type: 'postgres',
-        url: configService.get<string>('DATABASE_URL'),
-        autoLoadEntities: true,
-        synchronize: true, // ⚠️ Solo en desarrollo
-        ssl: {
-          rejectUnauthorized: false, // necesario en Render (usa SSL)
-        },
-      }),
+      useFactory: (configService: ConfigService) => {
+        const isProduction = configService.get('NODE_ENV') === 'production';
+        
+        if (isProduction) {
+          // En producción, usa la Internal Database URL completa
+          return {
+            type: 'postgres',
+            url: configService.get<string>('DATABASE_URL'), // 👈 URL completa
+            entities: [__dirname + '/**/*.entity{.ts,.js}'],
+            synchronize: true, // NUNCA true en producción
+            ssl: { rejectUnauthorized: false },
+            logging: false,
+          };
+        } else {
+          // En desarrollo, usa variables separadas
+          return {
+            type: 'postgres',
+            host: configService.get<string>('DB_HOST', 'localhost'),
+            port: configService.get<number>('DB_PORT', 5432),
+            username: configService.get<string>('DB_USERNAME', 'postgres'),
+            password: configService.get<string>('DB_PASSWORD'),
+            database: configService.get<string>('DB_NAME', 'imc_db'),
+            entities: [__dirname + '/**/*.entity{.ts,.js}'],
+            synchronize: true,
+            ssl: false,
+            logging: true,
+          };
+        }
+      },
     }),
-    TypeOrmModule.forFeature([ImcEntity]),
+    ImcModule,
   ],
+  controllers: [AppController],
+  providers: [AppService],
 })
 export class AppModule {}

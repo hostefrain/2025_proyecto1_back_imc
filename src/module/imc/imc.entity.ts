@@ -1,20 +1,20 @@
 import {Column, CreateDateColumn, Entity, PrimaryGeneratedColumn} from 'typeorm';
 
-@Entity('imc')
+@Entity('imc_entity')
 export class ImcEntity {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @Column()
+    @Column('decimal', { precision: 5, scale: 2 })
     altura: number;
 
-    @Column()
+    @Column('decimal', { precision: 5, scale: 2 })
     peso: number;
 
-    @Column()
+    @Column('decimal', { precision: 5, scale: 2 })
     imcValor: number;
 
-    @Column()
+    @Column('varchar', { length: 50 })
     categoria: string;
 
     @CreateDateColumn()

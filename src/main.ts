@@ -13,6 +13,7 @@ async function bootstrap() {
 
   const port = process.env.PORT || 3000; //Aca usamos el puerto de render o por def. el 3000
   await app.listen(port,'0.0.0.0');
+  console.log(`🚀 Servidor corriendo en puerto ${port}`);
 }
 
-module.exports = bootstrap()
+bootstrap();
