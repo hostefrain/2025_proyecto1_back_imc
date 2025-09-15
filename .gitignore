@@ -5,6 +5,8 @@
 
 # variable de entorno
 .env
+.env.local
+.env.production
 node_modules/
 dist/
 build/

@@ -1,6 +1,6 @@
 import {Column, CreateDateColumn, Entity, PrimaryGeneratedColumn} from 'typeorm';
 
-@Entity('imc_entity')
+@Entity('imc')
 export class ImcEntity {
     @PrimaryGeneratedColumn()
     id: number;

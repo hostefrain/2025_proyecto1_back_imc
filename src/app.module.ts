@@ -1,33 +1,27 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { AppService } from './app.service';
-import { ImcModule } from './module/imc/imc.module';
-import { AppController } from './app.controller';
-import { ImcEntity } from './module/imc/imc.entity';
+import { ImcEntity } from './module/imc/imc.entity'; // 👈 tus entidades
 
 @Module({
   imports: [
     ConfigModule.forRoot({
-      isGlobal: true,
+      isGlobal: true, // disponible en toda la app
     }),
-    ImcModule,
     TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         type: 'postgres',
-        url: configService.get('DATABASE_URL'),
-        entities: [ImcEntity],
-        synchronize: false, // 👈 IMPORTANTE: false en producción
+        url: configService.get<string>('DATABASE_URL'),
+        autoLoadEntities: true,
+        synchronize: true, // ⚠️ Solo en desarrollo
         ssl: {
-          rejectUnauthorized: false,
+          rejectUnauthorized: false, // necesario en Render (usa SSL)
         },
-        logging: false, // 👈 Desactivar logs en producción
       }),
-      inject: [ConfigService],
     }),
+    TypeOrmModule.forFeature([ImcEntity]),
   ],
-  controllers: [AppController],
-  providers: [AppService],
 })
-
 export class AppModule {}
