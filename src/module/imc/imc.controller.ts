@@ -8,9 +8,9 @@ import { CrearImcDto } from './dto/crear-imc-dto';
 export class ImcController {
   constructor(private readonly imcService: ImcService) {}
 
-  @Get()
-  test(): string {
-    return 'IMC Controller está funcionando correctamente!';
+ @Get('historial')
+  async findAll() {
+    return await this.imcService.findAll();
   }
 
   @Post('calcular')

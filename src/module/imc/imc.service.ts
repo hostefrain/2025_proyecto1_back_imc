@@ -14,6 +14,15 @@ export class ImcService {
     private readonly imcRepository: Repository<ImcEntity>,
   ) {}
 
+  // Método para obtener todos los registros
+  async findAll(): Promise<ImcEntity[]> {
+    return await this.imcRepository.find({
+      order: {
+        fechaHora: 'DESC' // Más recientes primero
+      }
+    });
+  }
+
   calcularImc(data: CalcularImcDto): number {
     const { altura, peso } = data;
     const imc = peso / (altura * altura);
@@ -61,7 +70,8 @@ export class ImcService {
   console.log('Entity antes de guardar:', imcEntity); // Log 3
 
   const guardado = await this.imcRepository.save(imcEntity);
-  console.log('Guardado en BD:', guardado);
+
+  console.log('Entity guardada:', guardado); // Log 4
 
   return this.mapToResponseDto(guardado);
 
