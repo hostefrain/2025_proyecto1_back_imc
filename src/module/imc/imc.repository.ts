@@ -1,23 +1,42 @@
-import { Repository, DataSource, Between } from 'typeorm';
-import { Injectable } from '@nestjs/common';
+import { Repository } from 'typeorm';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { ImcEntity } from './imc.entity';
+import { InjectRepository } from '@nestjs/typeorm';
+import { IImcRepository } from './IImcRepository';
+import { CrearImcDto } from './dto/crear-imc-dto';
 
 @Injectable()
-export class ImcRepository {
+export class ImcRepository implements IImcRepository {
 
-    private repository: Repository<ImcEntity>;
+    constructor(
+      @InjectRepository(ImcEntity)
+      private readonly repository: Repository<ImcEntity>) {}
 
-    constructor(private dataSource: DataSource) {
-    this.repository = this.dataSource.getRepository(ImcEntity);
-  }
+    find(): Promise<ImcEntity[]> {
+      try {
 
-    async save(Imc: ImcEntity): Promise<ImcEntity> {
-    try {
-      return await this.repository.save(Imc);
+        console.log('Buscando todas las entidades IMC'); // Log para verificar la llamada
 
-    } catch (error) {
-      throw new Error(`Error al guardar el cálculo de IMC: ${error}`);
+        return this.repository.find({
+      order: {
+        fechaHora: 'DESC' 
+      }
+    });
+      } catch (error) {
+        throw new InternalServerErrorException('Error al obtener las entidades IMC', error.message);
+      }
     }
+
+    save(imcDto: CrearImcDto): Promise<ImcEntity> {
+      try {
+        const nuevaEntity = this.repository.create(imcDto);
+        console.log('Nueva entidad creada:', nuevaEntity); // Log para verificar la creación
+
+        return this.repository.save(nuevaEntity);
+        
+      } catch (error) {
+        throw new InternalServerErrorException('Error al crear la entidad IMC', error.message);
+      }
   }
 
 }

@@ -1,26 +1,24 @@
-import { Injectable } from "@nestjs/common";
+import { Inject, Injectable } from "@nestjs/common";
 import { CalcularImcDto } from "./dto/calcular-imc-dto";
 import { ImcEntity } from "./imc.entity";
 import { CrearImcDto } from "./dto/crear-imc-dto";
-import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
+import { IImcRepository } from "./IImcRepository";
 
 
 @Injectable()
 export class ImcService {
 
   constructor(
-    @InjectRepository(ImcEntity)
-    private readonly imcRepository: Repository<ImcEntity>,
+    @Inject('IImcRepository')
+    private readonly repository: IImcRepository,
   ) {}
 
   // Método para obtener todos los registros
-  async findAll(): Promise<ImcEntity[]> {
-    return await this.imcRepository.find({
-      order: {
-        fechaHora: 'DESC' // Más recientes primero
-      }
-    });
+
+  async findAll(): Promise<CrearImcDto[]> {
+    const resultado = await this.repository.find();
+
+    return resultado.map(this.mapToResponseDto);
   }
 
   calcularImc(data: CalcularImcDto): number {
@@ -69,7 +67,7 @@ export class ImcService {
 
   console.log('Entity antes de guardar:', imcEntity); // Log 3
 
-  const guardado = await this.imcRepository.save(imcEntity);
+  const guardado = await this.repository.save(imcEntity);
 
   console.log('Entity guardada:', guardado); // Log 4
 
