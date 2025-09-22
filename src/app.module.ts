@@ -4,7 +4,6 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ImcModule } from './module/imc/imc.module';
-import { truncate } from 'fs';
 
 @Module({
   imports: [
@@ -18,30 +17,28 @@ import { truncate } from 'fs';
         const isProduction = configService.get('NODE_ENV') === 'production';
         
         if (isProduction) {
-          // En producción, usa la Internal Database URL completa
           return {
-            type: 'postgres',
+            type: 'mysql',
             url: configService.get<string>('DATABASE_URL'), // 👈 URL completa
             entities: [__dirname + '/**/*.entity{.ts,.js}'],
-            synchronize: true, // NUNCA true en producción
+            synchronize: false, // NUNCA true en producción
             ssl: { rejectUnauthorized: false },
             logging: false,
           };
         } else {
           // En desarrollo, usa variables separadas
           return {
-            type: 'postgres',
-            host: configService.get<string>('DB_HOST', 'localhost'),
-            port: configService.get<number>('DB_PORT', 5432),
-            username: configService.get<string>('DB_USERNAME', 'postgres'),
-            password: configService.get<string>('DB_PASSWORD'),
-            database: configService.get<string>('DB_NAME', 'imc_db'),
+            type: 'mysql',
+            host: configService.get<string>('MYSQL_HOST', 'shortline.proxy.rlwy.net'),
+            port: configService.get<number>('MYSQL_PORT', 21468),
+            username: configService.get<string>('MYSQL_USER', 'root'),
+            password: configService.get<string>('MYSQL_PASSWORD'),
+            database: configService.get<string>('MYSQL_DB', 'railway'),
             entities: [__dirname + '/**/*.entity{.ts,.js}'],
             synchronize: true,
             ssl: false,
             logging: true,
-          };
-        }
+          }}
       },
     }),
     ImcModule,

@@ -56,18 +56,15 @@ export class ImcService {
 
   const {altura, peso} = data;
 
+  const dto = new CrearImcDto();
+  dto.altura = altura;
+  dto.peso = peso;
+  dto.imcValor = imcValor;
+  dto.categoria = categoria;
+
   //fecha y hora se ingresan solos gracias a @CreateDateColumn()
 
-  //Crear Entity
-  const imcEntity = new ImcEntity();
-  imcEntity.altura = altura;
-  imcEntity.peso = peso;
-  imcEntity.imcValor = imcValor;
-  imcEntity.categoria = categoria;
-
-  console.log('Entity antes de guardar:', imcEntity); // Log 3
-
-  const guardado = await this.repository.save(imcEntity);
+  const guardado = await this.repository.save(dto);
 
   console.log('Entity guardada:', guardado); // Log 4
 

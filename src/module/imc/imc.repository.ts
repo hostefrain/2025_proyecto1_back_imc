@@ -14,13 +14,10 @@ export class ImcRepository implements IImcRepository {
 
     find(): Promise<ImcEntity[]> {
       try {
-
         console.log('Buscando todas las entidades IMC'); // Log para verificar la llamada
 
         return this.repository.find({
-      order: {
-        fechaHora: 'DESC' 
-      }
+      order: { fechaHora: 'DESC' }
     });
       } catch (error) {
         throw new InternalServerErrorException('Error al obtener las entidades IMC', error.message);
