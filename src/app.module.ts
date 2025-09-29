@@ -23,6 +23,7 @@ import { ImcModule } from './module/imc/imc.module';
             entities: [__dirname + '/**/*.entity{.ts,.js}'],
             synchronize: false, // NUNCA true en producción
             ssl: true,
+            sslValidate: false,   // ignora validación estricta del certificado
             logging: false,
           };
         } else {
