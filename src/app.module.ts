@@ -18,14 +18,12 @@ import { ImcModule } from './module/imc/imc.module';
         
         if (isProduction) {
           return {
-            type: 'mongodb',
+            type: 'mysql',
             url: configService.get<string>('DATABASE_URL'), // 👈 URL completa
             entities: [__dirname + '/**/*.entity{.ts,.js}'],
-            synchronize: true, // NUNCA true en producción
-            // ssl: true,
+            synchronize: false, // NUNCA true en producción
+            ssl: { rejectUnauthorized: false },
             logging: false,
-            useNewUrlParser: true,
-            useUnifiedTopology: true,
           };
         } else {
           // En desarrollo, usa variables separadas
