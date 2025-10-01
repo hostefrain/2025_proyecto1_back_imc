@@ -1,86 +1,58 @@
-import { Inject, Injectable } from "@nestjs/common";
-import { CalcularImcDto } from "./dto/calcular-imc-dto";
-import { ImcEntity } from "./imc.entity";
-import { CrearImcDto } from "./dto/crear-imc-dto";
-import { IImcRepository } from "./IImcRepository";
-
+import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { ImcEntity } from './imc.entity';
+import { CalcularImcDto } from './dto/calcular-imc-dto';
+import { CrearImcDto } from './dto/crear-imc-dto';   // 👈 Importar DTO de salida
 
 @Injectable()
 export class ImcService {
-
   constructor(
-    @Inject('IImcRepository')
-    private readonly repository: IImcRepository,
+    @InjectRepository(ImcEntity)
+    private readonly repository: Repository<ImcEntity>,
   ) {}
 
-  // Método para obtener todos los registros
-
-  async findAll(): Promise<CrearImcDto[]> {
-    const resultado = await this.repository.find();
-
-    return resultado.map(this.mapToResponseDto);
+  async findAll(): Promise<ImcEntity[]> {
+    return this.repository.find();
   }
 
-  calcularImc(data: CalcularImcDto): number {
-    const { altura, peso } = data;
-    const imc = peso / (altura * altura);
-    const imcRedondeado = Math.round(imc * 100) / 100; // Dos decimales
+  async createImc(data: CalcularImcDto): Promise<CrearImcDto> {
+    console.log('Datos recibidos:', data);
 
-    return imcRedondeado;
+    const imcValor = this.calcularImc(data);
+    const categoria = this.obtenerCategoria(imcValor);
+
+    // Creamos entidad para guardar en Mongo
+    const nuevo = this.repository.create({
+      altura: data.altura,
+      peso: data.peso,
+      imc: imcValor,
+      categoria,
+    });
+
+    const guardado = await this.repository.save(nuevo);
+
+    console.log('Entity guardada:', guardado);
+
+    // 👇 Mapear manualmente a DTO de salida
+    const dto = new CrearImcDto();
+    dto.altura = guardado.altura;
+    dto.peso = guardado.peso;
+    dto.imcValor = guardado.imc;   // mapeo manual
+    dto.categoria = guardado.categoria;
+    dto.fechaHora = guardado.fechaHora;
+
+    return dto;
   }
 
-  obtenerCategoria(imcValor: number): string {
-    let categoria: string;
-
-    if (imcValor < 18.5) {
-      categoria = 'Bajo peso';
-    } else if (imcValor < 25) {
-      categoria = 'Normal';
-    } else if (imcValor < 30) {
-      categoria = 'Sobrepeso';
-    } else {
-      categoria = 'Obeso';
-    }
-
-    return categoria;
+  private calcularImc(data: CalcularImcDto): number {
+    return data.peso / (data.altura * data.altura);
   }
-  
- async createImc(data: CalcularImcDto): Promise<CrearImcDto> {
-  console.log('Datos recibidos:', data); // Log 1
 
-  const imcValor = this.calcularImc(data);
-
-  const categoria = this.obtenerCategoria(imcValor);
-
-  console.log('IMC calculado:', imcValor, 'Categoría:', categoria); // Log 2
-
-  const {altura, peso} = data;
-
-  const dto = new CrearImcDto();
-  dto.altura = altura;
-  dto.peso = peso;
-  dto.imcValor = imcValor;
-  dto.categoria = categoria;
-
-  //fecha y hora se ingresan solos gracias a @CreateDateColumn()
-
-  const guardado = await this.repository.save(dto);
-
-  console.log('Entity guardada:', guardado); // Log 4
-
-  return this.mapToResponseDto(guardado);
-
- }
-
- private mapToResponseDto(calculo: ImcEntity): CrearImcDto {
-  return {
-    id: calculo.id,
-    altura: calculo.altura,
-    peso: calculo.peso,
-    imcValor: calculo.imcValor,
-    categoria: calculo.categoria,
-    fechaHora: calculo.fechaHora
-    };
+  private obtenerCategoria(imc: number): string {
+    if (imc < 18.5) return 'Bajo peso';
+    if (imc < 25) return 'Peso normal';
+    if (imc < 30) return 'Sobrepeso';
+    return 'Obesidad';
   }
 }
-

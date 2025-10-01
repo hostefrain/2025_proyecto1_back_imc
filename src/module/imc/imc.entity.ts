@@ -1,22 +1,23 @@
-import {Column, CreateDateColumn, Entity, PrimaryGeneratedColumn} from 'typeorm';
+import { Entity, ObjectIdColumn, ObjectId, Column, CreateDateColumn } from 'typeorm';
 
-@Entity('imc_entity')
+@Entity('imc')
 export class ImcEntity {
-    @PrimaryGeneratedColumn()
-    id: number;
+  @ObjectIdColumn()
+  id: ObjectId;
 
-    @Column('decimal', { precision: 5, scale: 2 })
-    altura: number;
+  @Column()
+  peso: number;
 
-    @Column('decimal', { precision: 5, scale: 2 })
-    peso: number;
+  @Column()
+  altura: number;
 
-    @Column('decimal', { precision: 5, scale: 2 })
-    imcValor: number;
+  @Column()
+  imc: number;
 
-    @Column('varchar', { length: 50 })
-    categoria: string;
+  @Column()
+  categoria: string;
 
-    @CreateDateColumn()
-    fechaHora: Date;
+  @CreateDateColumn()
+  fechaHora: Date;
 }
+
