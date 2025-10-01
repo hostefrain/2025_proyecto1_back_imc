@@ -17,33 +17,28 @@ export class ImcService {
   }
 
   async createImc(data: CalcularImcDto): Promise<CrearImcDto> {
-    console.log('Datos recibidos:', data);
-
     const imcValor = this.calcularImc(data);
     const categoria = this.obtenerCategoria(imcValor);
 
-    // Creamos entidad para guardar en Mongo
-    const nuevo = this.repository.create({
+    const entity = this.repository.create({
       altura: data.altura,
       peso: data.peso,
       imc: imcValor,
       categoria,
     });
 
-    const guardado = await this.repository.save(nuevo);
+    const guardado = await this.repository.save(entity);
 
-    console.log('Entity guardada:', guardado);
-
-    // 👇 Mapear manualmente a DTO de salida
     const dto = new CrearImcDto();
     dto.altura = guardado.altura;
     dto.peso = guardado.peso;
-    dto.imcValor = guardado.imc;   // mapeo manual
+    dto.imcValor = guardado.imc;
     dto.categoria = guardado.categoria;
     dto.fechaHora = guardado.fechaHora;
 
     return dto;
   }
+
 
   private calcularImc(data: CalcularImcDto): number {
     return data.peso / (data.altura * data.altura);

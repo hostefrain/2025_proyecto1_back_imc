@@ -24,7 +24,7 @@ export class ImcRepository implements IImcRepository {
       }
     }
 
-    save(imcDto: CrearImcDto): Promise<ImcEntity> {
+    async save(imcDto: ImcEntity): Promise<ImcEntity> {
       try {
         const nuevaEntity = this.repository.create(imcDto);
         console.log('Nueva entidad creada:', nuevaEntity); // Log para verificar la creación
