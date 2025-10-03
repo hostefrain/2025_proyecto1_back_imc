@@ -1,34 +1,32 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
+import { IImcRepository } from './IImcRepository';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ImcEntity } from './imc.entity';
 import { CalcularImcDto } from './dto/calcular-imc-dto';
-import { CrearImcDto } from './dto/crear-imc-dto';   // 👈 Importar DTO de salida
+import { CrearImcDto } from './dto/crear-imc-dto';
 
 @Injectable()
 export class ImcService {
   constructor(
-    @InjectRepository(ImcEntity)
-    private readonly repository: Repository<ImcEntity>,
+    @Inject('IImcRepository')
+    private readonly repository: IImcRepository,
   ) {}
-
-  async findAll(): Promise<ImcEntity[]> {
-    return this.repository.find();
-  }
 
   async createImc(data: CalcularImcDto): Promise<CrearImcDto> {
     const imcValor = this.calcularImc(data);
     const categoria = this.obtenerCategoria(imcValor);
 
-    const entity = this.repository.create({
-      altura: data.altura,
-      peso: data.peso,
-      imc: imcValor,
-      categoria,
-    });
+    // Mapear DTO → Entity
+    const entity = new ImcEntity();
+    entity.altura = data.altura;
+    entity.peso = data.peso;
+    entity.imc = imcValor;
+    entity.categoria = categoria;
 
     const guardado = await this.repository.save(entity);
 
+    // Mapear Entity → DTO de salida
     const dto = new CrearImcDto();
     dto.altura = guardado.altura;
     dto.peso = guardado.peso;
@@ -39,6 +37,9 @@ export class ImcService {
     return dto;
   }
 
+  async findAll(): Promise<ImcEntity[]> {
+    return this.repository.findAll();
+  }
 
   private calcularImc(data: CalcularImcDto): number {
     return data.peso / (data.altura * data.altura);
