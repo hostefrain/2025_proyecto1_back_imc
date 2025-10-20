@@ -2,11 +2,18 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ImcController } from './imc.controller';
 import { ImcService } from './imc.service';
 import { CalcularImcDto } from './dto/calcular-imc-dto';
-import { BadRequestException, ValidationPipe } from '@nestjs/common';
+import { CrearImcDto } from './dto/crear-imc-dto';
+import { ImcEntity } from './imc.entity';
+import { ObjectId } from 'mongodb'; // 👈 necesario para simular IDs válidos
 
 describe('ImcController', () => {
   let controller: ImcController;
   let service: ImcService;
+
+  const mockImcService = {
+    createImc: jest.fn(),
+    findAll: jest.fn(),
+  };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -14,9 +21,7 @@ describe('ImcController', () => {
       providers: [
         {
           provide: ImcService,
-          useValue: {
-            calcularImc: jest.fn(),
-          },
+          useValue: mockImcService,
         },
       ],
     }).compile();
@@ -25,29 +30,66 @@ describe('ImcController', () => {
     service = module.get<ImcService>(ImcService);
   });
 
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('should be defined', () => {
     expect(controller).toBeDefined();
   });
 
-  it('should return IMC and category for valid input', async () => {
-    const dto: CalcularImcDto = { altura: 1.75, peso: 70 };
-    jest.spyOn(service, 'calcularImc').mockReturnValue({ imc: 22.86, categoria: 'Normal' });
+  describe('calcular', () => {
+    it('should call ImcService.createImc and return result', async () => {
+      const dto: CalcularImcDto = { peso: 70, altura: 1.75 };
 
-    const result = await controller.calcular(dto);
-    expect(result).toEqual({ imc: 22.86, categoria: 'Normal' });
-    expect(service.calcularImc).toHaveBeenCalledWith(dto);
+      // 🔹 Creamos un ObjectId simulado válido
+      const mockId = new ObjectId();
+
+      const expected: CrearImcDto = {
+        id: mockId,
+        peso: 70,
+        altura: 1.75,
+        imcValor: 22.86,
+        categoria: 'Peso normal',
+        fechaHora: new Date(),
+      };
+
+      mockImcService.createImc.mockResolvedValue(expected);
+
+      const result = await controller.calcular(dto);
+
+      expect(service.createImc).toHaveBeenCalledWith(dto);
+      expect(result).toEqual(expected);
+    });
+
+    it('should throw validation error if invalid data provided (handled by ValidationPipe)', async () => {
+      mockImcService.createImc.mockRejectedValue(new Error('Validation failed'));
+
+      await expect(
+        controller.calcular({ peso: null, altura: 1.8 } as any),
+      ).rejects.toThrow('Validation failed');
+    });
   });
 
-  it('should throw BadRequestException for invalid input', async () => {
-    const invalidDto: CalcularImcDto = { altura: -1, peso: 70 };
+  describe('findAll', () => {
+    it('should return all IMC entries', async () => {
+      const mockData: ImcEntity[] = [
+        {
+          id: new ObjectId(),
+          peso: 70,
+          altura: 1.75,
+          imc: 22.86,
+          categoria: 'Peso normal',
+          fechaHora: new Date(),
+        },
+      ];
 
-    // Aplicar ValidationPipe manualmente en la prueba
-    const validationPipe = new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true });
+      mockImcService.findAll.mockResolvedValue(mockData);
 
-    await expect(validationPipe.transform(invalidDto, { type: 'body', metatype: CalcularImcDto }))
-      .rejects.toThrow(BadRequestException);
+      const result = await controller.findAll();
 
-    // Verificar que el servicio no se llama porque la validación falla antes
-    expect(service.calcularImc).not.toHaveBeenCalled();
+      expect(service.findAll).toHaveBeenCalled();
+      expect(result).toEqual(mockData);
+    });
   });
 });

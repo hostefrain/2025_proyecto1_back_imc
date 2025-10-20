@@ -21,7 +21,7 @@ import { ImcModule } from './module/imc/imc.module';
             type: 'mongodb',
             url: configService.get<string>('DATABASE_URL'), // 👈 URL completa
             entities: [__dirname + '/**/*.entity{.ts,.js}'],
-            synchronize: true, // NUNCA true en producción
+            synchronize: false, // NUNCA true en producción
             // ssl: true,
             logging: false,
             useNewUrlParser: true,
@@ -30,15 +30,11 @@ import { ImcModule } from './module/imc/imc.module';
         } else {
           // En desarrollo, usa variables separadas
           return {
-            type: 'mysql',
-            host: configService.get<string>('MYSQL_HOST', 'shortline.proxy.rlwy.net'),
-            port: configService.get<number>('MYSQL_PORT', 21468),
-            username: configService.get<string>('MYSQL_USER', 'root'),
-            password: configService.get<string>('MYSQL_PASSWORD'),
-            database: configService.get<string>('MYSQL_DB', 'railway'),
+            type: 'mongodb',
+            url: configService.get<string>('MONGO_URI', 'mongodb://localhost:27017/imc_dev'),
+            database: 'imc_dev', // nombre de base local
             entities: [__dirname + '/**/*.entity{.ts,.js}'],
             synchronize: true,
-            ssl: false,
             logging: true,
           }}
       },

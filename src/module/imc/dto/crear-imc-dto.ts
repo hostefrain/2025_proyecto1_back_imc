@@ -1,9 +1,10 @@
 import { IsDate, IsNumber, IsString, Min } from 'class-validator';
+import { ObjectId } from 'mongodb';
 
 export class CrearImcDto {
 
   @IsNumber()  
-  id: number;
+  id: ObjectId;
 
   @IsNumber()
   @Min(0.1) // Altura mínima razonable
